@@ -15,12 +15,12 @@ public class RepositoryTester {
     private String owner;
     private String repositoryName;
 
-    public RepositoryTester(String owner, String repositoryName, String SHA, String branch) {
-        this.owner = owner;
-        this.repositoryName = repositoryName;
-        this.URL = "https://github.com/" + owner + "/" + repositoryName;
-        this.SHA = SHA;
-        this.branch = branch;
+    public RepositoryTester(RepositoryInfo repo) {
+        this.owner = repo.owner;
+        this.repositoryName = repo.name;
+        this.URL = repo.cloneUrl;
+        this.SHA = repo.commitId;
+        this.branch = repo.ref;
     }
     
     public void runTests() {
