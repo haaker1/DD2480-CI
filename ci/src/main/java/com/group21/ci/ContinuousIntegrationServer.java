@@ -51,10 +51,10 @@ public class ContinuousIntegrationServer extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
-        String owner = "alexarne";
-        String repositoryName = "DD2480-CI";
-        String SHA = "qowdpinqwdoin";
-        String branch = "master";
+        String owner = "TRICOT-Hugo";
+        String repositoryName = "DD2480-CI-fork-webhook";
+        String SHA = "20ea9f12c3e043eb50362b0656099023469fece9";
+        String branch = "issue/3-status-sender";
         RepositoryTester repositoryTester = new RepositoryTester(owner, repositoryName, SHA, branch);
         repositoryTester.runTests();
         Server server = new Server(Config.PORT);
