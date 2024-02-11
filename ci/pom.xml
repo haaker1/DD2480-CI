@@ -26,10 +26,22 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
+    <!-- <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>7.0.2.v20100331</version>
+    </dependency> -->
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.53.v20231009</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>9.4.53.v20231009</version>
     </dependency>
 
     <dependency>
@@ -44,11 +56,11 @@
       <version>3.2.0</version>
     </dependency>
 
-    <dependency>
+    <!-- <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
       <version>6.8.0.202311291450-r</version>
-    </dependency>
+    </dependency> -->
 
     <dependency>
       <groupId>org.json</groupId>
