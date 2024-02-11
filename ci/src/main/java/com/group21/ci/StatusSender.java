@@ -54,7 +54,7 @@ public class StatusSender {
         // Add a target_url?
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(getStatusUrl()))
-            .header("Authorization", "Bearer " + Config.GITHUB_TOKEN)
+            //.header("Authorization", "Bearer " + Config.GITHUB_TOKEN)
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .POST(HttpRequest.BodyPublishers.ofString("{\"state\":\"" + status + "\"" 
