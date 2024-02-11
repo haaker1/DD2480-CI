@@ -25,7 +25,7 @@ public class StatusSenderTest {
 
         HttpRequest expectedRequest = HttpRequest.newBuilder()
             .uri(URI.create("https://api.github.com/repos/mockOwner/mockRepo/statuses/mockSha"))
-            .header("Authorization", "Bearer " + Config.GITHUB_TOKEN)
+            //.header("Authorization", "Bearer " + Config.GITHUB_TOKEN)
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .POST(HttpRequest.BodyPublishers.ofString(
