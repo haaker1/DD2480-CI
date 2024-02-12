@@ -34,6 +34,8 @@ public class RepositoryTester {
      * @return the exit code from the processes ran
      */
     public int runTests() {
+        StatusSender statusSender = new StatusSender(owner, repositoryName, SHA);
+        statusSender.sendPendingStatus();
         String id = generateUniqueIdentifier();
         String dir = Config.DIRECTORY_REPOSITORIES + id;
         File logFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_LOG_FILENAME);
@@ -88,6 +90,12 @@ public class RepositoryTester {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
+        }
+
+        if (exitCode == 0) {
+            statusSender.sendSuccessStatus();
+        } else {
+            statusSender.sendFailureStatus();
         }
         
         // Delete repo regardless
