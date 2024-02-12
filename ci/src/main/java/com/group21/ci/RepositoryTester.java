@@ -92,11 +92,11 @@ public class RepositoryTester {
             }
         }
 
-        if (exitCode == 0) {
-            statusSender.sendSuccessStatus();
-        } else {
-            statusSender.sendFailureStatus();
-        }
+        // if (exitCode == 0) {
+        //     statusSender.sendSuccessStatus();
+        // } else {
+        //     statusSender.sendFailureStatus();
+        // }
         
         // Delete repo regardless
         try {
