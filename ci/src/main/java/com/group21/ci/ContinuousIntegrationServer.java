@@ -159,11 +159,11 @@ public class ContinuousIntegrationServer extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
-        String testOwner = "alexarne";
-        String testRepositoryName = "DD2480-CI";
-        String testSHA = "qowdpinqwdoin";
-        String testBranch = "main";
-        String testCloneUrl = "https://github.com/alexarne/DD2480-CI.git";
+        String testOwner = "TRICOT-Hugo";
+        String testRepositoryName = "DD2480-CI-fork-webhook";
+        String testSHA = "20ea9f12c3e043eb50362b0656099023469fece9";
+        String testBranch = "issue/3-status-sender";
+        String testCloneUrl = "https://github.com/TRICOT-Hugo/DD2480-CI-fork-webhook.git";
         RepositoryInfo testRepo = new RepositoryInfo(testBranch, testSHA, testCloneUrl, testOwner, testRepositoryName);
         RepositoryTester repositoryTester = new RepositoryTester(testRepo);
         // repositoryTester.runTests();
