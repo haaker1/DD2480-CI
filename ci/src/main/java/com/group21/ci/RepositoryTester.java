@@ -35,7 +35,7 @@ public class RepositoryTester {
      */
     public int runTests() {
         StatusSender statusSender = new StatusSender(owner, repositoryName, SHA);
-        statusSender.sendPendingStatus();
+        //statusSender.sendPendingStatus();
         String id = generateUniqueIdentifier();
         String dir = Config.DIRECTORY_REPOSITORIES + id;
         File logFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_LOG_FILENAME);
