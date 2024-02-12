@@ -20,6 +20,7 @@ public class StatusSender {
         statusHttpClient = HttpClient.newHttpClient();
     }
 
+    //
     public void sendErrorStatus() {
         response = statusHttpClient.sendAsync(requestBuilder("error", 
                                                 "An error occured during the build"),
