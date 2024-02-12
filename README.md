@@ -30,4 +30,4 @@ Clone this repository and have Maven installed. This repository is also configur
 
     1. `./ngrok http 8021`
 
-- With the CI server running, add the public link as a Webhook to your GitHub repository
+- With the CI server running, add the public link as a Webhook to your GitHub repository and set the "Content type" to be `application/json`.

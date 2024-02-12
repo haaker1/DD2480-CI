@@ -1,23 +1,24 @@
 package com.group21.ci;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import org.eclipse.jetty.server.Server;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.json.JSONException;
 import org.json.JSONObject;
-
-import org.json.*;
 
 
 /** 
@@ -42,13 +43,22 @@ public class ContinuousIntegrationServer extends AbstractHandler
                 try{
                     BufferedReader reader = request.getReader();
                     RepositoryInfo repo = readPostData(reader);
-                    String print = "branch: " + repo.ref + " commit id: " + repo.commitId + " clone url: " + repo.cloneUrl;
+                    if (repo == null) {
+                        System.out.println("Unknown POST request");
+                        response.getWriter().println("Unknown POST request, assumed to be ping");
+                        break;
+                    }
+                    String print = "Received commit\nBranch: " + repo.ref + "\nCommit ID: " + repo.commitId + "\nClone URL: " + repo.cloneUrl;
                     response.getWriter().println(print);
-                    RepositoryTester repositoryTester = new RepositoryTester(repo);
-                    repositoryTester.runTests();
+                    final ExecutorService executor = Executors.newSingleThreadExecutor();
+                    executor.execute(new Runnable() {
+                        public void run() {
+                            RepositoryTester repositoryTester = new RepositoryTester(repo);
+                            repositoryTester.runTests();
+                        }
+                    });
 
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 break;
@@ -133,13 +143,17 @@ public class ContinuousIntegrationServer extends AbstractHandler
         }
         String data = buffer.toString();
         JSONObject jsonObj = new JSONObject(data);
-        String ref = jsonObj.getString("ref");
-        ref = ref.substring(ref.lastIndexOf("heads/")+6);
-        String commitId = jsonObj.getJSONObject("head_commit").getString("id");
-        String cloneUrl = jsonObj.getJSONObject("repository").getString("clone_url");
-        String owner = jsonObj.getJSONObject("repository").getJSONObject("owner").getString("name");
-        String name = jsonObj.getJSONObject("repository").getString("name");
-        return new RepositoryInfo(ref, commitId, cloneUrl, owner, name);
+        try {
+            String ref = jsonObj.getString("ref");
+            ref = ref.substring(ref.lastIndexOf("heads/")+6);
+            String commitId = jsonObj.getJSONObject("head_commit").getString("id");
+            String cloneUrl = jsonObj.getJSONObject("repository").getString("clone_url");
+            String owner = jsonObj.getJSONObject("repository").getJSONObject("owner").getString("name");
+            String name = jsonObj.getJSONObject("repository").getString("name");
+            return new RepositoryInfo(ref, commitId, cloneUrl, owner, name);
+        } catch (JSONException e) {
+            return null;
+        }
     }
  
     // used to start the CI server in command line
@@ -152,7 +166,7 @@ public class ContinuousIntegrationServer extends AbstractHandler
         String testCloneUrl = "https://github.com/alexarne/DD2480-CI.git";
         RepositoryInfo testRepo = new RepositoryInfo(testBranch, testSHA, testCloneUrl, testOwner, testRepositoryName);
         RepositoryTester repositoryTester = new RepositoryTester(testRepo);
-        repositoryTester.runTests();
+        // repositoryTester.runTests();
         Server server = new Server(Config.PORT);
         server.setHandler(new ContinuousIntegrationServer()); 
         server.start();
