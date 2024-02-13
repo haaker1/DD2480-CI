@@ -13,7 +13,8 @@ public class StatusSenderTest {
 
     @Before
     public void setUp() {
-        sender = new StatusSender("mockOwner", "mockRepo", "mockSha");
+        RepositoryInfo repo = new RepositoryInfo("mockRef", "mockSHA", "mockURL", "mockOwner", "mockRepo");
+        sender = new StatusSender(repo, "mockId");
     }
 
     /**
@@ -24,7 +25,7 @@ public class StatusSenderTest {
         HttpRequest builtRequest = sender.requestBuilder("status", "description");
 
         HttpRequest expectedRequest = HttpRequest.newBuilder()
-            .uri(URI.create("https://api.github.com/repos/mockOwner/mockRepo/statuses/mockSha"))
+            .uri(URI.create("https://api.github.com/repos/mockOwner/mockRepo/statuses/mockSHA"))
             .header("Authorization", "Bearer " + Config.GITHUB_TOKEN)
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")

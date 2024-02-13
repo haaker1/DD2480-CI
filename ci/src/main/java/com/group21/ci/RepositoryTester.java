@@ -20,6 +20,7 @@ public class RepositoryTester {
     private String branch;
     private String owner;
     private String repositoryName;
+    private String id;
 
     public RepositoryTester(RepositoryInfo repo) {
         this.owner = repo.owner;
@@ -27,6 +28,15 @@ public class RepositoryTester {
         this.URL = repo.cloneUrl;
         this.SHA = repo.commitId;
         this.branch = repo.ref;
+        this.id = generateUniqueIdentifier();
+    }
+
+    /**
+     * Get the unique identifier for this specific build.
+     * @return The local unique identifier for the build.
+     */
+    public String getIdentifier() {
+        return this.id;
     }
     
     /**
@@ -34,9 +44,6 @@ public class RepositoryTester {
      * @return the exit code from the processes ran
      */
     public int runTests() {
-        StatusSender statusSender = new StatusSender(owner, repositoryName, SHA);
-        statusSender.sendPendingStatus();
-        String id = generateUniqueIdentifier();
         String dir = Config.DIRECTORY_REPOSITORIES + id;
         File logFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_LOG_FILENAME);
         File SHAFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_IDENTIFIER_FILENAME);
@@ -53,6 +60,8 @@ public class RepositoryTester {
             logFile.createNewFile();
             SHAFile.createNewFile();
             branchFile.createNewFile();
+            appendToFile(SHA, SHAFile);
+            appendToFile(branch, branchFile);
             if (isWindows){
                 ProcessBuilder process = new ProcessBuilder("cmd", "/c", "git", "clone", URL, dir);
                 process.redirectErrorStream(true);
@@ -91,12 +100,6 @@ public class RepositoryTester {
                 e1.printStackTrace();
             }
         }
-
-        if (exitCode == 0) {
-            statusSender.sendSuccessStatus();
-        } else {
-            statusSender.sendFailureStatus();
-        }
         
         // Delete repo regardless
         try {
@@ -116,8 +119,6 @@ public class RepositoryTester {
             e.printStackTrace();
         }
 
-        appendToFile(SHA, SHAFile);
-        appendToFile(branch, branchFile);
         appendToFile(id + ": Exit code " + exitCode, logFile);
         System.out.println(id + ": Exit code " + exitCode);
         cleanFile(logFile);

@@ -1,6 +1,6 @@
 # Custom rules for .gitignore
 ngrok
-#*.env
+*.env
 ci/repos/
 ci/history/
 ci/build_history/

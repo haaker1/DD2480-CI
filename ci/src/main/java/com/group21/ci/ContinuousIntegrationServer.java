@@ -40,27 +40,30 @@ public class ContinuousIntegrationServer extends AbstractHandler
         baseRequest.setHandled(true);
         switch (request.getMethod()) {
             case "POST":
-                try{
-                    BufferedReader reader = request.getReader();
-                    RepositoryInfo repo = readPostData(reader);
-                    if (repo == null) {
-                        System.out.println("Unknown POST request");
-                        response.getWriter().println("Unknown POST request, assumed to be ping");
-                        break;
-                    }
-                    String print = "Received commit\nBranch: " + repo.ref + "\nCommit ID: " + repo.commitId + "\nClone URL: " + repo.cloneUrl;
-                    response.getWriter().println(print);
-                    final ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new Runnable() {
-                        public void run() {
-                            RepositoryTester repositoryTester = new RepositoryTester(repo);
-                            repositoryTester.runTests();
-                        }
-                    });
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                BufferedReader reader = request.getReader();
+                RepositoryInfo repo = readPostData(reader);
+                if (repo == null) {
+                    System.out.println("Unknown POST request");
+                    response.getWriter().println("Unknown POST request, assumed to be ping");
+                    break;
                 }
+                String print = "Received commit\nBranch: " + repo.ref + "\nCommit ID: " + repo.commitId + "\nClone URL: " + repo.cloneUrl;
+                response.getWriter().println(print);
+                final ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(new Runnable() {
+                    public void run() {
+                        RepositoryTester repositoryTester = new RepositoryTester(repo);
+                        StatusSender statusSender = new StatusSender(repo, repositoryTester.getIdentifier());
+                        statusSender.sendPendingStatus();
+                        int exitCode = repositoryTester.runTests();
+                        if (exitCode == 0) {
+                            statusSender.sendSuccessStatus();
+                        } else {
+                            statusSender.sendFailureStatus();
+                        }
+                    }
+                });
+
                 break;
             case "GET":
                 PrintWriter writer = response.getWriter();
@@ -106,8 +109,8 @@ public class ContinuousIntegrationServer extends AbstractHandler
                 Scanner logReader = new Scanner(new File(Config.DIRECTORY_BUILD_HISTORY + buildId + "/" + Config.BUILD_LOG_FILENAME));
                 java.util.Date date = new java.util.Date(Long.parseLong(buildId));
                 htmlRespone += "<h2>Build Date: " + date.toString() + "</h2>";
-                htmlRespone += "<h2>Branch: " + branchReader.nextLine() + "</h2>";
-                htmlRespone += "<h2>SHA: " + SHAReader.nextLine() + "</h2>";
+                htmlRespone += "<h2>Branch: " + (branchReader.hasNextLine() ? branchReader.nextLine() : "") + "</h2>";
+                htmlRespone += "<h2>SHA: " + (SHAReader.hasNextLine() ? SHAReader.nextLine() : "") + "</h2>";
                 htmlRespone += "<h2>Build log:</h2>";
                 while (logReader.hasNextLine()) {
                     htmlRespone += logReader.nextLine() + "<br>";
@@ -161,14 +164,16 @@ public class ContinuousIntegrationServer extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
-        String testOwner = "TRICOT-Hugo";
-        String testRepositoryName = "DD2480-CI-fork-webhook";
-        String testSHA = "20ea9f12c3e043eb50362b0656099023469fece9";
-        String testBranch = "issue/3-status-sender";
-        String testCloneUrl = "https://github.com/TRICOT-Hugo/DD2480-CI-fork-webhook.git";
+        String testOwner = "alexarne";
+        String testRepositoryName = "DD2480-CI";
+        String testSHA = "e9ee1e63e303bbf6f5b010b8fa28d1d71d04fd7a";
+        String testBranch = "issue/37-refactor-status/";
+        String testCloneUrl = "https://github.com/alexarne/DD2480-CI.git";
         RepositoryInfo testRepo = new RepositoryInfo(testBranch, testSHA, testCloneUrl, testOwner, testRepositoryName);
         RepositoryTester repositoryTester = new RepositoryTester(testRepo);
         // repositoryTester.runTests();
+        StatusSender ss = new StatusSender(testRepo, "1707768154560");
+        // ss.sendSuccessStatus();
         Server server = new Server(Config.PORT);
         server.setHandler(new ContinuousIntegrationServer()); 
         server.start();
