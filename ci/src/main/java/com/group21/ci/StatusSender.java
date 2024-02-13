@@ -3,7 +3,6 @@ package com.group21.ci;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.*;
-import java.util.concurrent.CompletableFuture;
 
 public class StatusSender {
     private String owner;
@@ -11,6 +10,11 @@ public class StatusSender {
     private String SHA;
     private HttpClient statusHttpClient;
     private String buildIdentifier;
+
+    private static final String STATE_ERROR = "error";
+    private static final String STATE_FAILURE = "failure";
+    private static final String STATE_PENDING = "pending";
+    private static final String STATE_SUCCESS = "success";
     
     /**
      * StatusSender constructor
@@ -34,15 +38,8 @@ public class StatusSender {
      */
     public void sendErrorStatus() {
         System.out.println("Sent ERROR status");
-        try {
-            HttpResponse<String> response = statusHttpClient.send(
-                requestBuilder("error", "An error occured during the build"),
-                HttpResponse.BodyHandlers.ofString()
-            );
-            System.out.println("Received code: " + response.statusCode());
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        String sanitizedDescription = TextSanitizer.sanitize("An error occurred during the build");
+        sendStatus(STATE_ERROR, sanitizedDescription);
     }
 
     /**
@@ -54,15 +51,8 @@ public class StatusSender {
      */
     public void sendFailureStatus() {
         System.out.println("Sent FAILURE status");
-        try {
-            HttpResponse<String> response = statusHttpClient.send(
-                requestBuilder("failure", "Build has failed"),
-                HttpResponse.BodyHandlers.ofString()
-            );
-            System.out.println("Received code: " + response.statusCode());
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        String sanitizedDescription = TextSanitizer.sanitize("Build has failed");
+        sendStatus(STATE_FAILURE, sanitizedDescription);
     }
 
     /**
@@ -74,15 +64,8 @@ public class StatusSender {
      */
     public void sendPendingStatus() {
         System.out.println("Sent PENDING status");
-        try {
-            HttpResponse<String> response = statusHttpClient.send(
-                requestBuilder("pending", "Build has begun on the CI server"),
-                HttpResponse.BodyHandlers.ofString()
-            );
-            System.out.println("Received code: " + response.statusCode());
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        String sanitizedDescription = TextSanitizer.sanitize("Build has begun on the CI server");
+        sendStatus(STATE_PENDING, sanitizedDescription);
     }
 
     /**
@@ -93,19 +76,31 @@ public class StatusSender {
      */
     public void sendSuccessStatus() {
         System.out.println("Sent SUCCESS status");
+        String sanitizedDescription = TextSanitizer.sanitize("Build success");
+        sendStatus(STATE_SUCCESS, sanitizedDescription);
+    }
+
+
+    // Helper methods
+    /**
+     * sendStatus
+     * A helper method that sends a request to set the commit status defined in the constructor.
+     * @param state the state of the commit status (see STATE_ERROR, etc.)
+     * @param description a short description for the status to be set
+     */
+    private void sendStatus(String state, String description) {
         try {
             HttpResponse<String> response = statusHttpClient.send(
-                requestBuilder("success", "Build success"), 
-                HttpResponse.BodyHandlers.ofString()
+                    requestBuilder(state, description),
+                    HttpResponse.BodyHandlers.ofString()
             );
             System.out.println("Received code: " + response.statusCode());
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    
     }
 
-
-    // Helper methods
     /**
      * getStatusUrl
      *      - a helper method that creates the URL of the API to update the commit status 
@@ -124,7 +119,6 @@ public class StatusSender {
      * @return the built request
      */
     public HttpRequest requestBuilder(String status, String description) {
-
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(getStatusUrl()))
             // Headers
