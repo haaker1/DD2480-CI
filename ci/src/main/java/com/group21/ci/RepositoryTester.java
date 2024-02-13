@@ -49,10 +49,6 @@ public class RepositoryTester {
         File SHAFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_IDENTIFIER_FILENAME);
         File branchFile = new File(Config.DIRECTORY_BUILD_HISTORY + id + "/" + Config.BUILD_BRANCH_FILENAME);
         logFile.getParentFile().mkdirs();
-        
-        //Os detection
-        String osName = System.getProperty("os.name").toLowerCase();
-        boolean isWindows = osName.contains("windows");
 
         // Clone, checkout the branch that was pushed to and run test.sh
         int exitCode = -99;
@@ -62,30 +58,16 @@ public class RepositoryTester {
             branchFile.createNewFile();
             appendToFile(SHA, SHAFile);
             appendToFile(branch, branchFile);
-            if (isWindows){
-                ProcessBuilder process = new ProcessBuilder("cmd", "/c", "git", "clone", URL, dir);
-                process.redirectErrorStream(true);
-                process.redirectOutput(Redirect.appendTo(logFile));
-                process.redirectError(Redirect.appendTo(logFile));
-                process.start().waitFor();
-                process.directory(new File(dir));
-                process.command("ls");
-                process.start().waitFor();
-                process.command("cmd", "/c", "test.bat");
-                exitCode = process.start().waitFor();
-            }
-            else{
-                ProcessBuilder process = new ProcessBuilder("git", "clone", URL, dir);
-                process.redirectErrorStream(true);
-                process.redirectOutput(Redirect.appendTo(logFile));
-                process.redirectError(Redirect.appendTo(logFile));
-                process.start().waitFor();
-                process.directory(new File(dir));
-                process.command("git", "checkout", branch);
-                process.start().waitFor();
-                process.command("bash",  "test.sh");
-                exitCode = process.start().waitFor();
-            }
+            ProcessBuilder process = new ProcessBuilder("git", "clone", URL, dir);
+            process.redirectErrorStream(true);
+            process.redirectOutput(Redirect.appendTo(logFile));
+            process.redirectError(Redirect.appendTo(logFile));
+            process.start().waitFor();
+            process.directory(new File(dir));
+            process.command("git", "checkout", branch);
+            process.start().waitFor();
+            process.command("bash",  "test.sh");
+            exitCode = process.start().waitFor();
             
         } catch (IOException | InterruptedException e) {
             // TODO Auto-generated catch block
@@ -103,16 +85,9 @@ public class RepositoryTester {
         
         // Delete repo regardless
         try {
-            if (isWindows){
-                ProcessBuilder process = new ProcessBuilder("cmd", "/c", "rmdir", "/s", "/q", id);
-                process.directory(new File(Config.DIRECTORY_REPOSITORIES));
-                process.start().waitFor();
-            }
-            else{
-                ProcessBuilder process = new ProcessBuilder("rm", "-rf", id);
-                process.directory(new File(Config.DIRECTORY_REPOSITORIES));
-                process.start().waitFor();
-            }
+            ProcessBuilder process = new ProcessBuilder("rm", "-rf", id);
+            process.directory(new File(Config.DIRECTORY_REPOSITORIES));
+            process.start().waitFor();
             
         } catch (IOException | InterruptedException e) {
             // TODO Auto-generated catch block
