@@ -10,11 +10,20 @@ public class StatusSender {
     private String SHA;
     private HttpClient statusHttpClient;
     private String buildIdentifier;
+    private String successDescription;
+    private String pendingDescription;
+    private String failureDescription;
+    private String errorDescription;
+
 
     private static final String STATE_ERROR = "error";
     private static final String STATE_FAILURE = "failure";
     private static final String STATE_PENDING = "pending";
     private static final String STATE_SUCCESS = "success";
+    private static final String DEFAULT_ERROR_DESCRIPTION = "An error occurred during the build";
+    private static final String DEFAULT_FAILURE_DESCRIPTION = "Build has failed";
+    private static final String DEFAULT_PENDING_DESCRIPTION = "Build has begun on the CI server";
+    private static final String DEFAULT_SUCCESS_DESCRIPTION = "Build success";
     
     /**
      * StatusSender constructor
@@ -27,6 +36,40 @@ public class StatusSender {
         this.SHA = repo.commitId;
         statusHttpClient = HttpClient.newHttpClient();
         this.buildIdentifier = id;
+        
+        errorDescription = "";
+        failureDescription = "";
+        pendingDescription = "";
+        successDescription = "";
+
+        if(Config.CUSTOM_SUCCESS_DESCRIPTION != null) {
+            successDescription = TextSanitizer.sanitize(Config.CUSTOM_SUCCESS_DESCRIPTION); 
+        }
+        if(successDescription.isEmpty()) {
+            successDescription = TextSanitizer.sanitize(DEFAULT_SUCCESS_DESCRIPTION);
+        }
+
+        if(Config.CUSTOM_PENDING_DESCRIPTION != null) {
+            pendingDescription = TextSanitizer.sanitize(Config.CUSTOM_PENDING_DESCRIPTION);     
+        }
+        if(pendingDescription.isEmpty()) {
+            pendingDescription = TextSanitizer.sanitize(DEFAULT_PENDING_DESCRIPTION);
+        }
+
+        if(Config.CUSTOM_FAILURE_DESCRIPTION != null) {
+            failureDescription = TextSanitizer.sanitize(Config.CUSTOM_FAILURE_DESCRIPTION);     
+        }
+        if(failureDescription.isEmpty()) {
+            failureDescription = TextSanitizer.sanitize(DEFAULT_FAILURE_DESCRIPTION);
+        }
+
+        if(Config.CUSTOM_ERROR_DESCRIPTION != null) {
+            errorDescription = TextSanitizer.sanitize(Config.CUSTOM_ERROR_DESCRIPTION);     
+        }
+        if(errorDescription.isEmpty()) {
+            errorDescription = TextSanitizer.sanitize(DEFAULT_ERROR_DESCRIPTION);
+        }
+
     }
 
     /**
@@ -38,7 +81,7 @@ public class StatusSender {
      */
     public void sendErrorStatus() {
         System.out.println("Sent ERROR status");
-        String sanitizedDescription = TextSanitizer.sanitize("An error occurred during the build");
+        String sanitizedDescription = TextSanitizer.sanitize(errorDescription);
         sendStatus(STATE_ERROR, sanitizedDescription);
     }
 
@@ -51,7 +94,7 @@ public class StatusSender {
      */
     public void sendFailureStatus() {
         System.out.println("Sent FAILURE status");
-        String sanitizedDescription = TextSanitizer.sanitize("Build has failed");
+        String sanitizedDescription = TextSanitizer.sanitize(failureDescription);
         sendStatus(STATE_FAILURE, sanitizedDescription);
     }
 
@@ -64,7 +107,7 @@ public class StatusSender {
      */
     public void sendPendingStatus() {
         System.out.println("Sent PENDING status");
-        String sanitizedDescription = TextSanitizer.sanitize("Build has begun on the CI server");
+        String sanitizedDescription = TextSanitizer.sanitize(pendingDescription);
         sendStatus(STATE_PENDING, sanitizedDescription);
     }
 
@@ -76,7 +119,7 @@ public class StatusSender {
      */
     public void sendSuccessStatus() {
         System.out.println("Sent SUCCESS status");
-        String sanitizedDescription = TextSanitizer.sanitize("Build success");
+        String sanitizedDescription = TextSanitizer.sanitize(successDescription);
         sendStatus(STATE_SUCCESS, sanitizedDescription);
     }
 
@@ -133,6 +176,34 @@ public class StatusSender {
                 + "}"))
             .build();
             return request;
+    }
+
+    /**
+     * @return the description that will be set for a success commit status
+     */
+    public String getSuccessDescription() {
+        return this.successDescription;
+    }
+
+    /**
+     * @return the description that will be set for a pending commit status
+     */
+    public String getPendingDescription() {
+        return this.pendingDescription;
+    }
+
+    /**
+     * @return the description that will be set for an errpr commit status
+     */
+    public String getErrorDescription() {
+        return this.errorDescription;
+    }
+
+    /**
+     * @return the description that will be set for a success commit status
+     */
+    public String getFailureDescription() {
+        return this.failureDescription;
     }
     
 }
