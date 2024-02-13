@@ -3,19 +3,15 @@ package com.group21.ci;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.OutputStream;
 import java.lang.ProcessBuilder.Redirect;
-import java.util.regex.Pattern;
 
 /**
- * Class for testing repositories.
+ * Class for testing repositories
  */
 public class RepositoryTester {
     private String URL;
