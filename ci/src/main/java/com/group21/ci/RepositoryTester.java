@@ -14,6 +14,9 @@ import java.io.OutputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.regex.Pattern;
 
+/**
+ * Class for testing repositories.
+ */
 public class RepositoryTester {
     private String URL;
     private String SHA;
@@ -22,6 +25,10 @@ public class RepositoryTester {
     private String repositoryName;
     private String id;
 
+    /**
+     * Constructs a RepositoryTester of the specified repository. 
+     * @param repo the repository to be tested
+     */
     public RepositoryTester(RepositoryInfo repo) {
         this.owner = repo.owner;
         this.repositoryName = repo.name;

@@ -2,6 +2,9 @@ package com.group21.ci;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+/**
+ * A class holding configurations for the server.
+ */
 public class Config {
     public static final String GITHUB_TOKEN = Dotenv.configure()
         .directory("..")

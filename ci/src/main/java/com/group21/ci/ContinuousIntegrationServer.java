@@ -20,14 +20,14 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-/** 
- Skeleton of a ContinuousIntegrationServer which acts as webhook
- See the Jetty documentation for API documentation of those classes.
-*/
+/**
+ * A class for a server handling continuous integration.
+ */
 public class ContinuousIntegrationServer extends AbstractHandler
 {
     /**
+     * Handler to handle incoming HTTP requests. The switch statement handles POST requests
+     * from the GitHub push webhook and GET requests to display build history.
      * POST handler
      */
     public void handle(String target,
@@ -164,19 +164,9 @@ public class ContinuousIntegrationServer extends AbstractHandler
         }
     }
  
-    // used to start the CI server in command line
+    // used to start the CI server from command line
     public static void main(String[] args) throws Exception
     {
-        String testOwner = "alexarne";
-        String testRepositoryName = "DD2480-CI";
-        String testSHA = "e9ee1e63e303bbf6f5b010b8fa28d1d71d04fd7a";
-        String testBranch = "issue/37-refactor-status/";
-        String testCloneUrl = "https://github.com/alexarne/DD2480-CI.git";
-        RepositoryInfo testRepo = new RepositoryInfo(testBranch, testSHA, testCloneUrl, testOwner, testRepositoryName);
-        RepositoryTester repositoryTester = new RepositoryTester(testRepo);
-        // repositoryTester.runTests();
-        StatusSender ss = new StatusSender(testRepo, "1707768154560");
-        // ss.sendSuccessStatus();
         Server server = new Server(Config.PORT);
         server.setHandler(new ContinuousIntegrationServer()); 
         server.start();

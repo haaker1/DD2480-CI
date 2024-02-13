@@ -1,14 +1,15 @@
 package com.group21.ci;
 
+/**
+ * A class for sanitizing text.
+ */
 public class TextSanitizer {
 
     /**
-     * sanitize method
-     * This method sanitizes the text by removing not allowed characters
-     * before sending it to the repository.
+     * Sanitizes  text by removing illegal characters
      * Allowed characters: a-z, A-Z, numbers, - and _
-     * 
-     * @param text the text to be sanitized (throws an IllegalArgumentException if text is null)
+     * @param text a string to be sanitized 
+     * @throws IllegalArgumentException if text is null
      * @return the sanitized string
      */
     public static String sanitize(String text) {
