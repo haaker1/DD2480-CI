@@ -27,6 +27,9 @@ import org.json.JSONObject;
 */
 public class ContinuousIntegrationServer extends AbstractHandler
 {
+    /**
+     * POST handler
+     */
     public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
