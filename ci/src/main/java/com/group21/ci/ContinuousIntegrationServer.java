@@ -20,13 +20,16 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-/** 
- Skeleton of a ContinuousIntegrationServer which acts as webhook
- See the Jetty documentation for API documentation of those classes.
-*/
+/**
+ * A class for a server handling continuous integration.
+ */
 public class ContinuousIntegrationServer extends AbstractHandler
 {
+    /**
+     * Handler to handle incoming HTTP requests. The switch statement handles POST requests
+     * from the GitHub push webhook and GET requests to display build history.
+     * POST handler
+     */
     public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
@@ -40,27 +43,30 @@ public class ContinuousIntegrationServer extends AbstractHandler
         baseRequest.setHandled(true);
         switch (request.getMethod()) {
             case "POST":
-                try{
-                    BufferedReader reader = request.getReader();
-                    RepositoryInfo repo = readPostData(reader);
-                    if (repo == null) {
-                        System.out.println("Unknown POST request");
-                        response.getWriter().println("Unknown POST request, assumed to be ping");
-                        break;
-                    }
-                    String print = "Received commit\nBranch: " + repo.ref + "\nCommit ID: " + repo.commitId + "\nClone URL: " + repo.cloneUrl;
-                    response.getWriter().println(print);
-                    final ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new Runnable() {
-                        public void run() {
-                            RepositoryTester repositoryTester = new RepositoryTester(repo);
-                            repositoryTester.runTests();
-                        }
-                    });
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                BufferedReader reader = request.getReader();
+                RepositoryInfo repo = readPostData(reader);
+                if (repo == null) {
+                    System.out.println("Unknown POST request");
+                    response.getWriter().println("Unknown POST request, assumed to be ping");
+                    break;
                 }
+                String print = "Received commit\nBranch: " + repo.ref + "\nCommit ID: " + repo.commitId + "\nClone URL: " + repo.cloneUrl;
+                response.getWriter().println(print);
+                final ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(new Runnable() {
+                    public void run() {
+                        RepositoryTester repositoryTester = new RepositoryTester(repo);
+                        StatusSender statusSender = new StatusSender(repo, repositoryTester.getIdentifier());
+                        statusSender.sendPendingStatus();
+                        int exitCode = repositoryTester.runTests();
+                        if (exitCode == 0) {
+                            statusSender.sendSuccessStatus();
+                        } else {
+                            statusSender.sendFailureStatus();
+                        }
+                    }
+                });
+
                 break;
             case "GET":
                 PrintWriter writer = response.getWriter();
@@ -104,8 +110,10 @@ public class ContinuousIntegrationServer extends AbstractHandler
                 Scanner branchReader = new Scanner(new File(Config.DIRECTORY_BUILD_HISTORY + buildId + "/" + Config.BUILD_BRANCH_FILENAME));
                 Scanner SHAReader = new Scanner(new File(Config.DIRECTORY_BUILD_HISTORY + buildId + "/" + Config.BUILD_IDENTIFIER_FILENAME));
                 Scanner logReader = new Scanner(new File(Config.DIRECTORY_BUILD_HISTORY + buildId + "/" + Config.BUILD_LOG_FILENAME));
-                htmlRespone += "<h2>Branch: " + branchReader.nextLine() + "</h2>";
-                htmlRespone += "<h2>SHA: " + SHAReader.nextLine() + "</h2>";
+                java.util.Date date = new java.util.Date(Long.parseLong(buildId));
+                htmlRespone += "<h2>Build Date: " + date.toString() + "</h2>";
+                htmlRespone += "<h2>Branch: " + (branchReader.hasNextLine() ? branchReader.nextLine() : "") + "</h2>";
+                htmlRespone += "<h2>SHA: " + (SHAReader.hasNextLine() ? SHAReader.nextLine() : "") + "</h2>";
                 htmlRespone += "<h2>Build log:</h2>";
                 while (logReader.hasNextLine()) {
                     htmlRespone += logReader.nextLine() + "<br>";
@@ -114,7 +122,7 @@ public class ContinuousIntegrationServer extends AbstractHandler
                 SHAReader.close();
                 logReader.close();
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                htmlRespone += "Build ID not found...";
             }
         } else {
             if (!target.equals("/favicon.ico")) 
@@ -156,17 +164,9 @@ public class ContinuousIntegrationServer extends AbstractHandler
         }
     }
  
-    // used to start the CI server in command line
+    // used to start the CI server from command line
     public static void main(String[] args) throws Exception
     {
-        String testOwner = "TRICOT-Hugo";
-        String testRepositoryName = "DD2480-CI-fork-webhook";
-        String testSHA = "20ea9f12c3e043eb50362b0656099023469fece9";
-        String testBranch = "issue/3-status-sender";
-        String testCloneUrl = "https://github.com/TRICOT-Hugo/DD2480-CI-fork-webhook.git";
-        RepositoryInfo testRepo = new RepositoryInfo(testBranch, testSHA, testCloneUrl, testOwner, testRepositoryName);
-        RepositoryTester repositoryTester = new RepositoryTester(testRepo);
-        // repositoryTester.runTests();
         Server server = new Server(Config.PORT);
         server.setHandler(new ContinuousIntegrationServer()); 
         server.start();

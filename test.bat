@@ -1,2 +1,0 @@
-cd ci
-mvn test
